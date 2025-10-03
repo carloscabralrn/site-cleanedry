@@ -1,0 +1,38 @@
+body {
+  background: #00B5E2;
+  color: white;
+}
+.gradient-bg {
+  background: linear-gradient(135deg, #5c2d91 0%, #7a4db8 100%);
+}
+.card-hover {
+  transition: all 0.3s ease;
+  background: #00B6D1 !important;
+  color: white !important;
+}
+.card-hover:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(92, 45, 145, 0.4);
+  background: #4a2474 !important;
+}
+.pulse-animation {
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+.admin-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+.login-panel {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 280px;
+  max-width: 90%;
+  padding: 1rem;
+}
