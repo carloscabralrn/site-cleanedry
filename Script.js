@@ -23,7 +23,7 @@ function mostrarLogin() {
     document.getElementById("adminLogin").classList.add("hidden");
     document.getElementById("plansSection").classList.remove("hidden");
     document.getElementById("adminButton").classList.remove("hidden");
-  }, 30000);
+  }, 60000);
 }
 
 // ======================================================
