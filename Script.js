@@ -1,5 +1,5 @@
 // Configuração da API online (Render)
-const API = https://api.cleanedry.com.br";
+const API =https://site-cleanedry.onrender.com";
 
 let token = localStorage.getItem("token") || null;
 let linksPagamento = {};
