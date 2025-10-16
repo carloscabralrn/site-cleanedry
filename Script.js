@@ -1,5 +1,6 @@
-// Configuração da API local
-const API = "http://localhost:3000";
+// Configuração da API online (Render)
+const API = "https://site-cleanedry.onrender.com";
+
 let token = localStorage.getItem("token") || null;
 let linksPagamento = {};
 let timer;
