@@ -1,4 +1,4 @@
-// ======================================================
+/ ======================================================
 // 🌐 Clean & Dry Lavanderia Express
 // Script.js — Integração completa Frontend + Backend (Render)
 // ======================================================
@@ -172,8 +172,9 @@ function preencherPlano(prefixo, dados) {
 }
 
 // ======================================================
-// 🔹 ATUALIZAR PLANOS (POST /admin/planos)
+// 🔹 ATUALIZAR PLANOS (PUT /admin/planos/:id)
 // ======================================================
+
 async function atualizarPlanos() {
   function limparTexto(texto) {
     return texto
@@ -183,54 +184,61 @@ async function atualizarPlanos() {
       .filter(Boolean);
   }
 
-  const payload = {
-    essencial: {
-      titulo: document.getElementById("tituloEssencial").value,
-      preco: document.getElementById("precoEssencial").value,
-      descricao: limparTexto(document.getElementById("descricaoEssencial").value),
-      link: document.getElementById("linkEssencial").value
-    },
-    familia: {
-      titulo: document.getElementById("tituloFamilia").value,
-      preco: document.getElementById("precoFamilia").value,
-      descricao: limparTexto(document.getElementById("descricaoFamilia").value),
-      link: document.getElementById("linkFamilia").value
-    },
-    premium: {
-      titulo: document.getElementById("tituloPremium").value,
-      preco: document.getElementById("precoPremium").value,
-      descricao: limparTexto(document.getElementById("descricaoPremium").value),
-      link: document.getElementById("linkPremium").value
-    }
-  };
-
   try {
-    const res = await fetch(`${API}/admin/planos`, {
-      method: "POST",
+    // ESSENCIAL
+    await fetch(`${API}/admin/planos/1`, {
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
         Authorization: "Bearer " + token
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({
+        titulo: document.getElementById("tituloEssencial").value,
+        preco: document.getElementById("precoEssencial").value,
+        descricao: limparTexto(document.getElementById("descricaoEssencial").value)
+      })
     });
 
-    if (!res.ok) throw new Error("Erro ao atualizar planos");
+    // FAMÍLIA
+    await fetch(`${API}/admin/planos/2`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token
+      },
+      body: JSON.stringify({
+        titulo: document.getElementById("tituloFamilia").value,
+        preco: document.getElementById("precoFamilia").value,
+        descricao: limparTexto(document.getElementById("descricaoFamilia").value)
+      })
+    });
 
-    // ✅ CHAMA A RECARREGAÇÃO DE DADOS APÓS ATUALIZAÇÃO
+    // PREMIUM
+    await fetch(`${API}/admin/planos/3`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token
+      },
+      body: JSON.stringify({
+        titulo: document.getElementById("tituloPremium").value,
+        preco: document.getElementById("precoPremium").value,
+        descricao: limparTexto(document.getElementById("descricaoPremium").value)
+      })
+    });
+
     await carregarPlanosPublicos();
 
     document.getElementById("successModal").classList.remove("hidden");
     document.getElementById("successModal").classList.add("flex");
+
   } catch (e) {
     console.warn("⚠️ Falha ao salvar no backend, atualização local aplicada.");
-    await carregarPlanosPublicos(); // mesmo que falhe, atualiza local
+    await carregarPlanosPublicos();
     document.getElementById("successModal").classList.remove("hidden");
     document.getElementById("successModal").classList.add("flex");
   }
-}
-
-
-// ======================================================
+}// ======================================================
 // 🔹 BOTÃO “ASSINAR AGORA”
 // ======================================================
 function assinarPlano(plano) {
@@ -241,6 +249,25 @@ function assinarPlano(plano) {
     alert("Link de pagamento ainda não configurado.");
   }
 }
+
+// ======================================================
+// 🔹 EVENTOS INICIAIS
+// ======================================================
+
+  }
+
+  const modal = document.getElementById("successModal");
+  if (modal) {
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) fecharModal();
+    });
+  }
+
+  carregarPlanosPublicos(); // Carrega planos automaticamente
+});
+
+
+
 
 // ======================================================
 // 🔹 EVENTOS INICIAIS
