@@ -194,65 +194,90 @@ async function atualizarPlanos() {
   }
 
   function limparTexto(texto) {
+    if (!texto) return [];
     return texto
-      .replace(/✓/g, "")
       .split(/\r?\n/)
-      .map((linha) => linha.trim())
+      .map((linha) => linha.replace(/^[\s✓✔️]+/, "").trim())
       .filter(Boolean);
   }
 
   try {
+    console.log("Iniciando atualização dos planos...");
+    
     // ESSENCIAL
+    const dadosEssencial = {
+      titulo: document.getElementById("tituloEssencial").value,
+      preco: document.getElementById("precoEssencial").value,
+      descricao: limparTexto(document.getElementById("descricaoEssencial").value),
+      link: document.getElementById("linkEssencial").value
+    };
+    console.log("Dados Essencial:", dadosEssencial);
+    
     const res1 = await fetch(`${API}/admin/planos/1`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         Authorization: "Bearer " + token
       },
-      body: JSON.stringify({
-        titulo: document.getElementById("tituloEssencial").value,
-        preco: document.getElementById("precoEssencial").value,
-        descricao: limparTexto(document.getElementById("descricaoEssencial").value),
-        link: document.getElementById("linkEssencial").value
-      })
+      body: JSON.stringify(dadosEssencial)
     });
 
-    if (!res1.ok) throw new Error(`Erro ao atualizar Essencial: ${res1.status}`);
+    console.log("Resposta Essencial:", res1.status);
+    if (!res1.ok) {
+      const errorText = await res1.text();
+      console.error("Erro Essencial:", errorText);
+      throw new Error(`Erro ao atualizar Essencial: ${res1.status} - ${errorText}`);
+    }
 
     // FAMÍLIA
+    const dadosFamilia = {
+      titulo: document.getElementById("tituloFamilia").value,
+      preco: document.getElementById("precoFamilia").value,
+      descricao: limparTexto(document.getElementById("descricaoFamilia").value),
+      link: document.getElementById("linkFamilia").value
+    };
+    console.log("Dados Família:", dadosFamilia);
     const res2 = await fetch(`${API}/admin/planos/2`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         Authorization: "Bearer " + token
       },
-      body: JSON.stringify({
-        titulo: document.getElementById("tituloFamilia").value,
-        preco: document.getElementById("precoFamilia").value,
-        descricao: limparTexto(document.getElementById("descricaoFamilia").value),
-        link: document.getElementById("linkFamilia").value
-      })
+      body: JSON.stringify(dadosFamilia)
     });
 
-    if (!res2.ok) throw new Error(`Erro ao atualizar Família: ${res2.status}`);
+    console.log("Resposta Família:", res2.status);
+    if (!res2.ok) {
+      const errorText = await res2.text();
+      console.error("Erro Família:", errorText);
+      throw new Error(`Erro ao atualizar Família: ${res2.status} - ${errorText}`);
+    }
 
     // PREMIUM
+    const dadosPremium = {
+      titulo: document.getElementById("tituloPremium").value,
+      preco: document.getElementById("precoPremium").value,
+      descricao: limparTexto(document.getElementById("descricaoPremium").value),
+      link: document.getElementById("linkPremium").value
+    };
+    console.log("Dados Premium:", dadosPremium);
     const res3 = await fetch(`${API}/admin/planos/3`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         Authorization: "Bearer " + token
       },
-      body: JSON.stringify({
-        titulo: document.getElementById("tituloPremium").value,
-        preco: document.getElementById("precoPremium").value,
-        descricao: limparTexto(document.getElementById("descricaoPremium").value),
-        link: document.getElementById("linkPremium").value
-      })
+      body: JSON.stringify(dadosPremium)
     });
 
-    if (!res3.ok) throw new Error(`Erro ao atualizar Premium: ${res3.status}`);
+    console.log("Resposta Premium:", res3.status);
+    if (!res3.ok) {
+      const errorText = await res3.text();
+      console.error("Erro Premium:", errorText);
+      throw new Error(`Erro ao atualizar Premium: ${res3.status} - ${errorText}`);
+    }
 
+    console.log("Todos os planos atualizados com sucesso!");
     await carregarPlanosPublicos();
 
     document.getElementById("successModal").classList.remove("hidden");
