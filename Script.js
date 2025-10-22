@@ -193,14 +193,19 @@ async function atualizarPlanos() {
 
     if (!res.ok) throw new Error("Erro ao atualizar planos");
 
+    // ✅ CHAMA A RECARREGAÇÃO DE DADOS APÓS ATUALIZAÇÃO
+    await carregarPlanosPublicos();
+
     document.getElementById("successModal").classList.remove("hidden");
     document.getElementById("successModal").classList.add("flex");
   } catch (e) {
     console.warn("⚠️ Falha ao salvar no backend, atualização local aplicada.");
+    await carregarPlanosPublicos(); // mesmo que falhe, atualiza local
     document.getElementById("successModal").classList.remove("hidden");
     document.getElementById("successModal").classList.add("flex");
   }
 }
+
 
 // ======================================================
 // 🔹 BOTÃO “ASSINAR AGORA”
