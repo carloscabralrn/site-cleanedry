@@ -95,14 +95,20 @@ async function carregarPlanosPublicos() {
     if (res.ok) {
       const dados = await res.json();
 
-      // Converte o array em um objeto no formato esperado
+      // Garante que dados inválidos não quebrem o app
       const planos = {};
       dados.forEach((plano) => {
-        planos[plano.nome.toLowerCase()] = {
-          titulo: plano.titulo,
-          preco: plano.preco,
-          descricao: plano.descricao.split(";").map(item => item.trim()).filter(Boolean),
-          link: plano.link
+        if (!plano.nome || !plano.link) return; // ❗ ignora planos incompletos
+
+        const nome = plano.nome.toLowerCase();
+
+        planos[nome] = {
+          titulo: plano.titulo || "",
+          preco: plano.preco || "",
+          descricao: typeof plano.descricao === "string"
+            ? plano.descricao.split(";").map((d) => d.trim()).filter(Boolean)
+            : [],
+          link: plano.link || ""
         };
       });
 
@@ -110,14 +116,16 @@ async function carregarPlanosPublicos() {
       preencherPlano("Familia", planos.familia);
       preencherPlano("Premium", planos.premium);
 
-      linksPagamento.essencial = planos.essencial.link;
-      linksPagamento.familia = planos.familia.link;
-      linksPagamento.premium = planos.premium.link;
+      // Apenas define links se existirem
+      linksPagamento.essencial = planos.essencial?.link || "";
+      linksPagamento.familia = planos.familia?.link || "";
+      linksPagamento.premium = planos.premium?.link || "";
     }
   } catch (e) {
     console.error("Erro ao carregar planos públicos:", e);
   }
 }
+
 
 
 // ======================================================
