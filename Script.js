@@ -89,33 +89,22 @@ function fecharModal() {
 // ======================================================
 // 🔹 CARREGAR PLANOS (ADMIN + PÚBLICO)
 // ======================================================
-async function carregarInformacoes() {
-  try {
-    const res = await fetch(`${API}/admin/planos`, {
-      headers: token ? { Authorization: "Bearer " + token } : {}
-    });
-
-    if (res.ok) {
-      const planos = await res.json();
-
-      preencherPlano("Essencial", planos.essencial);
-      preencherPlano("Familia", planos.familia);
-      preencherPlano("Premium", planos.premium);
-
-      linksPagamento.essencial = planos?.essencial?.link || "";
-      linksPagamento.familia = planos?.familia?.link || "";
-      linksPagamento.premium = planos?.premium?.link || "";
-    }
-  } catch (e) {
-    console.warn("⚠️ Não foi possível carregar planos do backend.");
-  }
-}
-
 async function carregarPlanosPublicos() {
   try {
     const res = await fetch(`${API}/planos`);
     if (res.ok) {
-      const planos = await res.json();
+      const dados = await res.json();
+
+      // Converte o array em um objeto no formato esperado
+      const planos = {};
+      dados.forEach((plano) => {
+        planos[plano.nome.toLowerCase()] = {
+          titulo: plano.titulo,
+          preco: plano.preco,
+          descricao: plano.descricao.split(";").map(item => item.trim()).filter(Boolean),
+          link: plano.link
+        };
+      });
 
       preencherPlano("Essencial", planos.essencial);
       preencherPlano("Familia", planos.familia);
@@ -129,6 +118,7 @@ async function carregarPlanosPublicos() {
     console.error("Erro ao carregar planos públicos:", e);
   }
 }
+
 
 // ======================================================
 // 🔹 FUNÇÃO AUXILIAR - Preenche campos e cards
