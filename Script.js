@@ -1,53 +1,40 @@
 // ===============================
-// 💻 Clean & Dry - Frontend Script Atualizado (com JWT)
+// 💻 Clean & Dry - Frontend Script (com JWT)
 // ===============================
 
-const API = "https://api.cleanedry.com.br"; // 👉 Mantenha assim (sem /api)
+const API = "https://api.cleanedry.com.br";
 let token = sessionStorage.getItem("token") || null;
 
-// ===============================
-// 🔐 LOGIN ADMIN
-// ===============================
 async function fazerLogin() {
-  const senha = document.getElementById("senhaAdmin").value.trim();
-  if (!senha) {
-    alert("Digite a senha de administrador.");
-    return;
-  }
+  const senhaEl = document.getElementById("senhaAdmin");
+  const senha = (senhaEl?.value || "").trim();
+  if (!senha) return alert("Digite a senha do administrador.");
 
   try {
-    const resposta = await fetch(`${API}/login`, {
+    const resp = await fetch(`${API}/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password: senha }),
+      body: JSON.stringify({ password: senha })
     });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || "Falha ao autenticar.");
 
-    if (!resposta.ok) {
-      const erro = await resposta.json().catch(() => ({}));
-      throw new Error(erro.error || "Falha ao autenticar.");
-    }
-
-    const dados = await resposta.json();
-    token = dados.token;
+    token = data.token;
     sessionStorage.setItem("token", token);
 
-    alert("✅ Login realizado com sucesso!");
-    document.getElementById("loginAdmin").style.display = "none";
-    document.getElementById("painelAdmin").style.display = "block";
-  } catch (err) {
-    console.error("Erro no login:", err);
+    document.getElementById("loginAdmin").classList.add("hidden");
+    document.getElementById("painelAdmin").classList.remove("hidden");
+
+    await carregarPlanos();
+    alert("✅ Login realizado!");
+  } catch (e) {
+    console.error(e);
     alert("❌ Senha incorreta ou servidor indisponível.");
   }
 }
 
-// ===============================
-// 🔁 ATUALIZAR PLANOS (rota protegida)
-// ===============================
 async function atualizarPlanos() {
-  if (!token) {
-    alert("Sessão expirada. Faça login novamente.");
-    return;
-  }
+  if (!token) return alert("Sessão expirada. Faça login novamente.");
 
   const planos = [
     {
@@ -75,38 +62,32 @@ async function atualizarPlanos() {
 
   try {
     for (const plano of planos) {
-      const resposta = await fetch(`${API}/admin/planos`, {
+      const resp = await fetch(`${API}/admin/planos`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify(plano),
+        body: JSON.stringify(plano)
       });
-
-      if (!resposta.ok) {
-        const erro = await resposta.json().catch(() => ({}));
-        throw new Error(erro.error || `Erro ao atualizar ${plano.nome}`);
-      }
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) throw new Error(data.error || `Erro ao salvar ${plano.nome}`);
     }
-
-    alert("✅ Planos atualizados com sucesso!");
-  } catch (err) {
-    console.error("Erro ao atualizar planos:", err);
+    alert("✅ Planos atualizados!");
+  } catch (e) {
+    console.error(e);
     alert("❌ Erro ao atualizar planos. Tente novamente.");
   }
 }
 
-// ===============================
-// 🌍 CARREGAR PLANOS (rota pública)
-// ===============================
 async function carregarPlanos() {
   try {
-    const resposta = await fetch(`${API}/planos`);
-    if (!resposta.ok) throw new Error("Falha ao carregar planos.");
-    const dados = await resposta.json();
+    const resp = await fetch(`${API}/planos`);
+    if (!resp.ok) throw new Error("Falha ao carregar planos.");
+    const lista = await resp.json();
 
-    dados.forEach(plano => {
+    // Preencher campos, se existirem
+    lista.forEach((plano) => {
       if (plano.nome === "essencial") {
         document.getElementById("tituloPlanoEssencial").value = plano.titulo || "";
         document.getElementById("precoPlanoEssencial").value = plano.preco || "";
@@ -124,17 +105,15 @@ async function carregarPlanos() {
         document.getElementById("linkPlanoPremium").value = plano.link || "";
       }
     });
-  } catch (err) {
-    console.error("Erro ao carregar planos:", err);
+  } catch (e) {
+    console.error(e);
   }
 }
 
-// ===============================
-// ⚙️ EVENTOS AO CARREGAR
-// ===============================
 document.addEventListener("DOMContentLoaded", () => {
-  carregarPlanos();
-  const painel = document.getElementById("painelAdmin");
-  if (token) painel.style.display = "block";
+  if (token) {
+    document.getElementById("loginAdmin").classList.add("hidden");
+    document.getElementById("painelAdmin").classList.remove("hidden");
+    carregarPlanos();
+  }
 });
-
