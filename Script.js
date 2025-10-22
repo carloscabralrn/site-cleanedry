@@ -42,12 +42,16 @@ async function verificarSenha() {
       body: JSON.stringify({ password: senhaDigitada })
     });
 
-    const data = await res.json();
-
     if (!res.ok) {
       erroDiv.classList.remove("hidden");
       document.getElementById("adminPassword").value = "";
       return;
+    }
+
+    const data = await res.json();
+
+    if (!data.token) {
+      throw new Error("Token não recebido.");
     }
 
     token = data.token;
@@ -63,8 +67,12 @@ async function verificarSenha() {
     await carregarInformacoes();
   } catch (e) {
     alert("Erro de conexão com o servidor.");
+    document.getElementById("adminPanel").classList.add("hidden");
+    document.getElementById("adminLogin").classList.remove("hidden");
+    document.getElementById("plansSection").classList.remove("hidden");
   }
 }
+
 
 // ======================================================
 // 🔹 SAIR DO PAINEL ADMIN
