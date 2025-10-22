@@ -4,6 +4,7 @@
 // ======================================================
 
 // URL base da API hospedada no Render
+
 const API = "https://api.cleanedry.com.br";
 
 let token = localStorage.getItem("token") || null;
@@ -42,10 +43,15 @@ async function verificarSenha() {
       body: JSON.stringify({ password: senhaDigitada })
     });
 
-    if (!res.ok) {
+    if (res.status === 401) {
+      // Senha incorreta
       erroDiv.classList.remove("hidden");
       document.getElementById("adminPassword").value = "";
       return;
+    }
+
+    if (!res.ok) {
+      throw new Error("Erro inesperado");
     }
 
     const data = await res.json();
@@ -64,14 +70,15 @@ async function verificarSenha() {
     document.getElementById("adminPassword").value = "";
     erroDiv.classList.add("hidden");
 
-    await carregarInformacoes();
+    await carregarPlanosPublicos();
   } catch (e) {
-    alert("Erro de conexão com o servidor.");
+    alert("❌ Servidor não encontrado.");
     document.getElementById("adminPanel").classList.add("hidden");
-    document.getElementById("adminLogin").classList.remove("hidden");
+    document.getElementById("adminLogin").classList.add("hidden");
     document.getElementById("plansSection").classList.remove("hidden");
   }
 }
+
 
 
 // ======================================================
