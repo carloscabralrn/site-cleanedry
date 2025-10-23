@@ -3,11 +3,10 @@
 // Script.js — Integração completa Frontend + Backend (Render)
 // ======================================================
 
-// URL base da API hospedada no Render
 const API = "https://api.cleanedry.com.br";
 
-// Armazena token em memória (não usa localStorage)
-let token = null;
+// 🔐 Agora o token é persistente
+let token = localStorage.getItem("token");
 let linksPagamento = {};
 let timer;
 
@@ -19,8 +18,7 @@ function mostrarLogin() {
   document.getElementById("plansSection").classList.add("hidden");
   document.getElementById("adminButton").classList.add("hidden");
   document.getElementById("adminPanel").classList.add("hidden");
-  
-  // Timer da senha - 60 segundos
+
   clearTimeout(timer);
   timer = setTimeout(() => {
     document.getElementById("adminLogin").classList.add("hidden");
@@ -40,27 +38,23 @@ async function verificarSenha() {
     const res = await fetch(`${API}/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password: senhaDigitada })
+      body: JSON.stringify({ password: senhaDigitada }),
     });
 
     if (res.status === 401) {
-      // Senha incorreta
       erroDiv.classList.remove("hidden");
       document.getElementById("adminPassword").value = "";
       return;
     }
 
-    if (!res.ok) {
-      throw new Error("Erro inesperado");
-    }
+    if (!res.ok) throw new Error("Erro inesperado");
 
     const data = await res.json();
 
-    if (!data.token) {
-      throw new Error("Token não recebido.");
-    }
+    if (!data.token) throw new Error("Token não recebido.");
 
     token = data.token;
+    localStorage.setItem("token", token); // 🔐 salva token no navegador
 
     clearTimeout(timer);
     document.getElementById("adminLogin").classList.add("hidden");
@@ -88,6 +82,7 @@ function sairAdmin() {
   document.getElementById("adminLogin").classList.add("hidden");
   document.getElementById("adminButton").classList.remove("hidden");
   token = null;
+  localStorage.removeItem("token"); // ❌ remove token ao sair
 }
 
 // ======================================================
@@ -104,29 +99,24 @@ function fecharModal() {
 async function carregarPlanosPublicos() {
   try {
     const res = await fetch(`${API}/planos`);
-    if (!res.ok) {
-      throw new Error(`Erro HTTP: ${res.status}`);
-    }
-    
+    if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
+
     const dados = await res.json();
     console.log("Planos carregados:", dados);
 
-    // Garante que dados inválidos não quebrem o app
     const planos = {};
     dados.forEach((plano) => {
-      if (!plano.nome) return; // Ignora planos sem nome
-
+      if (!plano.nome) return;
       const nome = plano.nome.toLowerCase();
-
       planos[nome] = {
         titulo: plano.titulo || "",
         preco: plano.preco || "",
-        descricao: Array.isArray(plano.descricao) 
-          ? plano.descricao 
+        descricao: Array.isArray(plano.descricao)
+          ? plano.descricao
           : typeof plano.descricao === "string"
           ? plano.descricao.split(";").map((d) => d.trim()).filter(Boolean)
           : [],
-        link: plano.link || ""
+        link: plano.link || "",
       };
     });
 
@@ -134,11 +124,9 @@ async function carregarPlanosPublicos() {
     preencherPlano("Familia", planos.familia);
     preencherPlano("Premium", planos.premium);
 
-    // Apenas define links se existirem
     linksPagamento.essencial = planos.essencial?.link || "";
     linksPagamento.familia = planos.familia?.link || "";
     linksPagamento.premium = planos.premium?.link || "";
-    
   } catch (e) {
     console.error("Erro ao carregar planos públicos:", e);
   }
@@ -152,7 +140,6 @@ function preencherPlano(prefixo, dados) {
 
   const prefixoCard = "Plano" + prefixo;
 
-  // Preenche inputs do admin
   const inputTitulo = document.getElementById(`titulo${prefixo}`);
   const inputPreco = document.getElementById(`preco${prefixo}`);
   const inputDescricao = document.getElementById(`descricao${prefixo}`);
@@ -163,7 +150,6 @@ function preencherPlano(prefixo, dados) {
   if (inputDescricao) inputDescricao.value = dados.descricao.join("\n");
   if (inputLink) inputLink.value = dados.link;
 
-  // Preenche cards públicos
   const cardTitulo = document.getElementById(`titulo${prefixoCard}`);
   const cardPreco = document.getElementById(`preco${prefixoCard}`);
   const cardDescricao = document.getElementById(`descricao${prefixoCard}`);
@@ -203,78 +189,37 @@ async function atualizarPlanos() {
 
   try {
     console.log("Iniciando atualização dos planos...");
-    
-    // ESSENCIAL
-    const dadosEssencial = {
-      titulo: document.getElementById("tituloEssencial").value,
-      preco: document.getElementById("precoEssencial").value,
-      descricao: limparTexto(document.getElementById("descricaoEssencial").value),
-      link: document.getElementById("linkEssencial").value
-    };
-    console.log("Dados Essencial:", dadosEssencial);
-    
-    const res1 = await fetch(`${API}/admin/planos/1`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token
-      },
-      body: JSON.stringify(dadosEssencial)
-    });
 
-    console.log("Resposta Essencial:", res1.status);
-    if (!res1.ok) {
-      const errorText = await res1.text();
-      console.error("Erro Essencial:", errorText);
-      throw new Error(`Erro ao atualizar Essencial: ${res1.status} - ${errorText}`);
-    }
+    const planos = [
+      { id: 1, nome: "Essencial" },
+      { id: 2, nome: "Familia" },
+      { id: 3, nome: "Premium" },
+    ];
 
-    // FAMÍLIA
-    const dadosFamilia = {
-      titulo: document.getElementById("tituloFamilia").value,
-      preco: document.getElementById("precoFamilia").value,
-      descricao: limparTexto(document.getElementById("descricaoFamilia").value),
-      link: document.getElementById("linkFamilia").value
-    };
-    console.log("Dados Família:", dadosFamilia);
-    const res2 = await fetch(`${API}/admin/planos/2`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token
-      },
-      body: JSON.stringify(dadosFamilia)
-    });
+    for (const plano of planos) {
+      const dados = {
+        titulo: document.getElementById(`titulo${plano.nome}`).value,
+        preco: document.getElementById(`preco${plano.nome}`).value,
+        descricao: limparTexto(
+          document.getElementById(`descricao${plano.nome}`).value
+        ),
+        link: document.getElementById(`link${plano.nome}`).value,
+      };
 
-    console.log("Resposta Família:", res2.status);
-    if (!res2.ok) {
-      const errorText = await res2.text();
-      console.error("Erro Família:", errorText);
-      throw new Error(`Erro ao atualizar Família: ${res2.status} - ${errorText}`);
-    }
+      const res = await fetch(`${API}/admin/planos/${plano.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token,
+        },
+        body: JSON.stringify(dados),
+      });
 
-    // PREMIUM
-    const dadosPremium = {
-      titulo: document.getElementById("tituloPremium").value,
-      preco: document.getElementById("precoPremium").value,
-      descricao: limparTexto(document.getElementById("descricaoPremium").value),
-      link: document.getElementById("linkPremium").value
-    };
-    console.log("Dados Premium:", dadosPremium);
-    const res3 = await fetch(`${API}/admin/planos/3`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token
-      },
-      body: JSON.stringify(dadosPremium)
-    });
-
-    console.log("Resposta Premium:", res3.status);
-    if (!res3.ok) {
-      const errorText = await res3.text();
-      console.error("Erro Premium:", errorText);
-      throw new Error(`Erro ao atualizar Premium: ${res3.status} - ${errorText}`);
+      console.log(`Resposta ${plano.nome}:`, res.status);
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Erro ao atualizar ${plano.nome}: ${errorText}`);
+      }
     }
 
     console.log("Todos os planos atualizados com sucesso!");
@@ -282,7 +227,6 @@ async function atualizarPlanos() {
 
     document.getElementById("successModal").classList.remove("hidden");
     document.getElementById("successModal").classList.add("flex");
-
   } catch (e) {
     console.error("Erro ao atualizar planos:", e);
     alert("⚠️ Erro ao salvar: " + e.message);
@@ -305,6 +249,14 @@ function assinarPlano(plano) {
 // 🔹 EVENTOS INICIAIS
 // ======================================================
 document.addEventListener("DOMContentLoaded", () => {
+  token = localStorage.getItem("token"); // 🔄 recupera token salvo
+
+  if (token) {
+    document.getElementById("adminPanel").classList.remove("hidden");
+    document.getElementById("plansSection").classList.add("hidden");
+    console.log("🔐 Sessão admin restaurada");
+  }
+
   const pass = document.getElementById("adminPassword");
   if (pass) {
     pass.addEventListener("keypress", (e) => {
@@ -319,5 +271,5 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  carregarPlanosPublicos(); // Carrega planos automaticamente
+  carregarPlanosPublicos();
 });
